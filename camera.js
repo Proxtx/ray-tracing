@@ -1,15 +1,9 @@
 import Vector3 from "./vector.js";
 import { Ray } from "./ray.js";
-import { Material } from "./material.js";
 
 export class Camera {
   rayDepth = 30;
   rayAmount = 100;
-  globalMaterial = new Material(
-    new Vector3(),
-    0.0 /* 1 */,
-    new Vector3(1, 1, 1)
-  );
 
   constructor(pos, direction, display, resolution, scene) {
     this.pos = pos;
@@ -19,10 +13,6 @@ export class Camera {
     this.scene = scene;
     this.width = this.display.canvas.width;
     this.height = this.display.canvas.height;
-
-    //this.generatePixels();
-
-    //console.log(this.pixelMatrix);
   }
 
   generatePixels() {
@@ -135,14 +125,10 @@ class Pixel {
   shootRay(ray) {
     let incomingLight = new Vector3(0, 0, 0);
     let rayColor = new Vector3(1, 1, 1);
-    let count = 0;
-    let firstHit;
 
     for (let depth = 0; depth < this.camera.rayDepth; depth++) {
-      count++;
       let hit = this.calculateRayCollision(ray);
       if (hit[0]) {
-        if (!firstHit) firstHit = hit[0];
         ray.start = hit[0].point;
 
         let material = hit[0].collision.object.material;
@@ -168,12 +154,7 @@ class Pixel {
         incomingLight = incomingLight.add(emittedLight.multiply(rayColor));
         rayColor = rayColor.multiply(material.color).multiply(lightStrength);
       } else {
-        let material = this.camera.globalMaterial;
-        let emittedLight = material.emissionColor.multiply(
-          material.emissionStrength
-        );
-        incomingLight = incomingLight.add(emittedLight.multiply(rayColor));
-        rayColor = rayColor.multiply(material.color);
+        incomingLight = incomingLight.add(rayColor.multiply(0.2));
         break;
       }
     }

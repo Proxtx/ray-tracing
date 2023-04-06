@@ -32,12 +32,12 @@ let s4 = new Sphere(
 let s5 = new Sphere(
   new Vector3(0, 0, 0),
   2,
-  new Material(new Vector3(1, 1, 1), 0, new Vector3(1, 1, 1), 0)
+  new Material(new Vector3(0.3, 0.3, 0.3), 0, new Vector3(1, 1, 1), 0.3)
 );
 
 const canvas = document.getElementById("canvas");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = 200 * 2 * 2;
+canvas.height = 200 * 2 * 2;
 const ctx = canvas.getContext("2d");
 
 let scene = new Scene([s, s2, s3, s5]);
@@ -52,3 +52,25 @@ camera.generatePixelsCornerPoints(
 );
 
 camera.render(2);
+
+const downloadCanvas = (index) => {
+  camera.render(2);
+
+  // Convert our canvas to a data URL
+  let canvasUrl = canvas.toDataURL();
+  // Create an anchor, and set the href value to our data URL
+  let createEl = document.createElement("a");
+  createEl.href = canvasUrl;
+
+  // This is the name of our downloaded file
+  createEl.download = index + ".png";
+
+  // Click the download button, causing a download, and then remove it
+  createEl.click();
+  createEl.remove();
+};
+
+/*for (let i = 0; i < 5; i++) {
+  s5.pos = s5.pos.add(new Vector3(0, 0, 0.1));
+  downloadCanvas(i);
+}*/
