@@ -5,58 +5,11 @@ export class Scene {
 }
 
 export class Sphere {
-  constructor(pos, radius) {
+  constructor(pos, radius, material) {
     this.pos = pos;
     this.radius = radius;
+    this.material = material;
   }
-
-  /*collision(ray) {
-    let p = ray.start.subtract(this.pos);
-    let rSquared = this.radius * this.radius;
-
-    let p_d = p.dot(ray.direction);
-    console.log(p_d);
-
-    if (p_d > 0 || p.dot(p) < rSquared) console.log("No collision");
-
-    let a = p.subtract(ray.direction.multiply(p_d));
-
-    let aSquared = a.dot(a);
-
-    console.log(aSquared);
-
-    if (aSquared > rSquared) console.log("No collision");
-
-    let h = rSquared.subtract(aSquared).length();
-
-    let i = a.subtract(ray.direction.multiply(h));
-
-    let intersection = this.pos.add(i);
-
-    let normal = i.multiply(1 / this.radius);
-
-    console.log(intersection, normal);
-  }*/
-
-  /*collision(ray) {
-    let m = ray.start.subtract(this.pos);
-    let b = m.dot(ray.direction);
-    let c = m.dot(m) - this.radius * this.radius;
-
-    if (c > 0 && b > 0) return console.log("No collision");
-
-    let discr = b * b - c;
-
-    if (discr < 0) return console.log("No collision");
-
-    let t = -b - Math.sqrt(discr);
-
-    if (t < 0) t = 0;
-
-    let q = ray.start.add(ray.direction.multiply(t));
-
-    return q;
-  }*/
 
   collision(ray) {
     let rS = ray.start;
@@ -67,28 +20,71 @@ export class Sphere {
     let n = ray.direction;
     let d = n.dot(sS);
 
-    console.log(n, d);
-
     let t =
       (d - n.x1 * rS.x1 - n.x2 * rS.x2 - n.x3 * rS.x3) /
       (n.x1 * rD.x1 + n.x2 * rD.x2 + n.x3 * rD.x3);
 
-    let cP = rS.add(rD.multiply(t));
+    if (t < 0) return new Collision([], rS, this);
 
+    let cP = rS.add(rD.multiply(t));
     let cPSCAbs = sS.subtract(cP).length();
 
-    if (cPSCAbs > 3) return false;
+    if (cPSCAbs > r) return new Collision([], rS, this);
+    if (cPSCAbs == r)
+      return new Collision([new CollisionPoint(cP, cP.subtract(sS))], rS, this);
 
-    let cPbPAbs = Math.sqrt(Math.pow(this.radius, 2) - Math.pow(cPSCAbs, 2));
+    let cPbPAbs = Math.sqrt(Math.pow(r, 2) - Math.pow(cPSCAbs, 2));
 
     let tMovementToCollisionPoints =
       cPbPAbs /
       Math.sqrt(Math.pow(rD.x1, 2) + Math.pow(rD.x2, 2) + Math.pow(rD.x3, 2));
 
-    console.log(tMovementToCollisionPoints);
-
     let cp1 = cP.add(rD.multiply(tMovementToCollisionPoints));
     let cp2 = cP.add(rD.multiply(-tMovementToCollisionPoints));
-    console.log(cp1, cp2);
+
+    return new Collision(
+      [
+        new CollisionPoint(cp1, cp1.subtract(sS)),
+        new CollisionPoint(cp2, cp2.subtract(sS)),
+      ],
+      rS,
+      this
+    );
+  }
+}
+
+export class Collision {
+  constructor(points, origin, object) {
+    this.points = points;
+    this.origin = origin;
+    this.object = object;
+
+    for (let point of points) point.collision = this;
+  }
+
+  hasCollided() {
+    return this.points.length != 0;
+  }
+
+  closestCollision() {
+    let smallestDistance = Infinity;
+    let smallestPoint;
+
+    for (let point of this.points) {
+      let dist = point.point.subtract(this.origin).length();
+      if (dist < smallestDistance) {
+        smallestPoint = point;
+        smallestDistance = dist;
+      }
+    }
+
+    return [smallestPoint, smallestDistance];
+  }
+}
+
+export class CollisionPoint {
+  constructor(point, normal) {
+    this.point = point;
+    this.normal = normal;
   }
 }
