@@ -74,7 +74,9 @@ export class Camera {
     }
   }
 
-  render() {
+  render(pixelSize) {
+    this.pixelSize = pixelSize;
+
     this.display.clearRect(0, 0, this.width, this.height);
     for (let pixelRowIndex in this.pixelMatrix) {
       for (let pixelColumnIndex in this.pixelMatrix[pixelRowIndex]) {
@@ -85,10 +87,10 @@ export class Camera {
         })`;
 
         this.display.fillRect(
-          pixelColumnIndex * this.worldToScreenMultiplier,
-          pixelRowIndex * this.worldToScreenMultiplier,
-          this.worldToScreenMultiplier,
-          this.worldToScreenMultiplier
+          pixelColumnIndex * this.pixelSize,
+          pixelRowIndex * this.pixelSize,
+          this.pixelSize,
+          this.pixelSize
         );
       }
     }
@@ -111,7 +113,7 @@ class Pixel {
       let collision = object.collision(ray);
       if (collision.hasCollided()) {
         let closestCollision = collision.closestCollision();
-        console.log(closestCollision);
+        //console.log(closestCollision);
         if (closestCollision[1] < closestHit[1]) closestHit = closestCollision;
       }
     }
