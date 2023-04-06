@@ -44,6 +44,36 @@ export class Vector3 {
   dot(n) {
     return this.multiply(n).flatten();
   }
+
+  random() {
+    return new Vector3(
+      Math.random() * 2 - 1,
+      Math.random() * 2 - 1,
+      Math.random() * 2 - 1
+    );
+  }
+
+  normalize() {
+    let t =
+      1 /
+      Math.sqrt(
+        Math.pow(this.x1, 2) + Math.pow(this.x2, 2) + Math.pow(this.x3, 2)
+      );
+
+    return this.multiply(t);
+  }
+
+  lerp(n, alpha) {
+    return new Vector3(
+      lerp(this.x1, n.x1, alpha),
+      lerp(this.x2, n.x2, alpha),
+      lerp(this.x3, n.x3, alpha)
+    );
+  }
 }
 
 export default Vector3;
+
+const lerp = (a, b, alpha) => {
+  return a + alpha * (b - a);
+};

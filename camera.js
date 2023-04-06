@@ -1,7 +1,16 @@
 import Vector3 from "./vector.js";
 import { Ray } from "./ray.js";
+import { Material } from "./material.js";
 
 export class Camera {
+  rayDepth = 30;
+  rayAmount = 100;
+  globalMaterial = new Material(
+    new Vector3(),
+    0.0 /* 1 */,
+    new Vector3(1, 1, 1)
+  );
+
   constructor(pos, direction, display, resolution, scene) {
     this.pos = pos;
     this.direction = direction;
@@ -105,20 +114,95 @@ class Pixel {
   }
 
   color() {
-    let ray = new Ray(this.pos, this.direction);
+    let colors = [];
+    while (colors.length < this.camera.rayAmount) {
+      let ray = new Ray(this.pos, this.direction);
+      colors.push(this.shootRay(ray));
+    }
 
+    //if (colors[0].x1 == 1) console.log(colors);
+    let avgColor = new Vector3();
+
+    for (let color of colors) {
+      avgColor = avgColor.add(color);
+    }
+
+    avgColor = avgColor.multiply(1 / colors.length);
+
+    return avgColor;
+  }
+
+  shootRay(ray) {
+    let incomingLight = new Vector3(0, 0, 0);
+    let rayColor = new Vector3(1, 1, 1);
+    let count = 0;
+    let firstHit;
+
+    for (let depth = 0; depth < this.camera.rayDepth; depth++) {
+      count++;
+      let hit = this.calculateRayCollision(ray);
+      if (hit[0]) {
+        if (!firstHit) firstHit = hit[0];
+        ray.start = hit[0].point;
+
+        let material = hit[0].collision.object.material;
+
+        const randomDirection = getBounceVector(
+          hit[0],
+          hit[0].collision.object.material
+        );
+        const specularDirection = getReflectingVector(
+          ray.direction,
+          hit[0].normal
+        );
+        ray.direction = randomDirection.lerp(
+          specularDirection,
+          1 - material.roughness
+        );
+
+        let emittedLight = material.emissionColor.multiply(
+          material.emissionStrength
+        );
+        let lightStrength = hit[0].normal.dot(ray.direction);
+
+        incomingLight = incomingLight.add(emittedLight.multiply(rayColor));
+        rayColor = rayColor.multiply(material.color).multiply(lightStrength);
+      } else {
+        let material = this.camera.globalMaterial;
+        let emittedLight = material.emissionColor.multiply(
+          material.emissionStrength
+        );
+        incomingLight = incomingLight.add(emittedLight.multiply(rayColor));
+        rayColor = rayColor.multiply(material.color);
+        break;
+      }
+    }
+
+    return incomingLight;
+  }
+
+  calculateRayCollision(ray) {
     let closestHit = [null, Infinity];
 
     for (let object of this.camera.scene.objects) {
       let collision = object.collision(ray);
       if (collision.hasCollided()) {
         let closestCollision = collision.closestCollision();
-        //console.log(closestCollision);
         if (closestCollision[1] < closestHit[1]) closestHit = closestCollision;
       }
     }
 
-    if (!closestHit[0]) return new Vector3(0, 0, 0);
-    else return closestHit[0].collision.object.material.color;
+    return closestHit;
   }
 }
+
+const getBounceVector = (collisionPoint, material) => {
+  let v = new Vector3().random();
+  if (collisionPoint.normal.dot(v) < 0) v = v.invert();
+  return v;
+};
+
+const getReflectingVector = (inV, n) => {
+  n = n.normalize();
+  return inV.subtract(n.multiply(inV.dot(n)).multiply(2));
+};

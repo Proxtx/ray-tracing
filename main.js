@@ -8,13 +8,31 @@ import { Material } from "./material.js";
 let s = new Sphere(
   new Vector3(2, 3, 3),
   3,
-  new Material(new Vector3(1, 0, 0), 1)
+  new Material(new Vector3(1, 1, 1), 0, new Vector3(0), 1)
 );
 
 let s2 = new Sphere(
-  new Vector3(3, 4, 3),
-  3.2,
-  new Material(new Vector3(0, 1, 0), 0, 0)
+  new Vector3(-2, 8, 3),
+  2,
+  new Material(new Vector3(0, 0, 0), 7, new Vector3(0, 1, 0), 1)
+);
+
+let s3 = new Sphere(
+  new Vector3(-2, -2, 5),
+  2,
+  new Material(new Vector3(0, 0, 0), 7, new Vector3(0, 0, 1), 1)
+);
+
+let s4 = new Sphere(
+  new Vector3(0, 0, -50),
+  50,
+  new Material(new Vector3(1, 1, 1), 0, new Vector3(0, 0, 0), 1)
+);
+
+let s5 = new Sphere(
+  new Vector3(0, 0, 0),
+  2,
+  new Material(new Vector3(1, 1, 1), 0, new Vector3(1, 1, 1), 0)
 );
 
 const canvas = document.getElementById("canvas");
@@ -22,7 +40,7 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const ctx = canvas.getContext("2d");
 
-let scene = new Scene([s, s2]);
+let scene = new Scene([s, s2, s3, s5]);
 let camera = new Camera(new Vector3(-22, 3, 3), new Vector3(1), ctx, 20, scene);
 
 camera.generatePixelsCornerPoints(
